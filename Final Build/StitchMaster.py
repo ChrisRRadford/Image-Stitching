@@ -11,8 +11,8 @@ Input:		Input command is program name followed by "--first "and path to
 			calling python. Path unique to computer and OS. If running from command 
 			line prefix command with "python "
  
-			python StitchMaster.py --first /Users/chrisradford/Documents/Research/ImagesToPass/Stitch2
-			python StitchMaster.py --first /Users/chrisradford/Documents/Research/ImagesToPass/Stitch4
+			python StitchMaster.py --imageSet /Users/chrisradford/Documents/Research/ImagesToPass/Stitch2 --featureDetection orb
+			python StitchMaster.py --imageSet /Users/chrisradford/Documents/Research/ImagesToPass/Stitch4 --featureDetection orb
 
 Output:		Stitched image of type .jpg. Path and file name to writen must be manually stated on 
 			line 79 and is currently commented out
@@ -27,7 +27,7 @@ Notes:		 - When creating a folder containing images the images must be selected 
 ----------------------------------------------------"""
 #--------CODE TO FOLLOW---------#
 #import necessecary Packages
-import os
+import os 
 import cv2
 import argparse
 from StitchingMaster import Stitcher
@@ -35,17 +35,21 @@ from StitchingMaster import Stitcher
 #initalize objects
 stitcher = Stitcher()
 ap = argparse.ArgumentParser()
-ap.add_argument("-1", "--first", required=True)
+ap.add_argument("-1", "--imageSet", required=True)
+ap.add_argument("-2", "--featureDetection", required=True)
 args = vars(ap.parse_args())
 #Define variables
 imageSize = (1800,1200)						#size of image to be passed to stitcher
-showMatches = True							#True if wish to see matches; False otherwise
+showMatches = True 							#True if wish to see matches; False otherwise
 keypoints = []
 descriptors = []
 resultImageSize = (1200,900)				#Size of final image to be displated and saved
-fileList = os.listdir(args["first"])	#list of images in folder
-path = os.path.abspath(args["first"])		#Folder path
+fileList = os.listdir(args["imageSet"])	#list of images in folder
+path = os.path.abspath(args["imageSet"])		#Folder path
+featureDetection = (args["featureDetection"])
+featureDetection = featureDetection.upper()
 imagesToStitch = []
+
 
 
 # Ensure we do not get any hidden files taken from os.listdir().
@@ -62,12 +66,12 @@ if len(imagesToStitch) < 2:
 	quit()
 #----Base Case[2]----#
 else:
-	print "Processing iamge: ",imagesToStitch[0]
+	print "Processing image: ",imagesToStitch[0]
 	img1 =  cv2.resize(cv2.imread(os.path.join(path,imagesToStitch[0]),1),imageSize)
-	print "Processing iamge: ",imagesToStitch[1]
+	print "Processing image: ",imagesToStitch[1]
 	img2 = cv2.resize(cv2.imread(os.path.join(path,imagesToStitch[1]),1),imageSize)
 	#result = stitched image
-	(result,keypoints,descriptors) = stitcher.stitch([img1,img2],showMatches,keypoints,descriptors)
+	(result,keypoints,descriptors) = stitcher.stitch([img1,img2],showMatches,keypoints,descriptors,featureDetection)
 	#ensure good stitch
 	if result is None:
 		print "Couldnt complete iteration for image:", nextImage
@@ -79,7 +83,7 @@ else:
 		for image in imagesToStitch:
 			print "Processing image: ",image
 			nextImage = cv2.resize(cv2.imread(os.path.join(path,image),1),imageSize)
-			(result,keypoints,descriptors) = stitcher.stitch([result,nextImage],showMatches,keypoints,descriptors)
+			(result,keypoints,descriptors) = stitcher.stitch([result,nextImage],showMatches,keypoints,descriptors,featureDetection)
 			#ensure good stitch
 			if result is None:
 				print "Couldnt complete iteration for image:", nextImage
@@ -93,4 +97,5 @@ cv2.imshow("Result",result)
 cv2.waitKey(0)
 #save result image for later use. This must be decalred by user here
 cv2.destroyAllWindows()
+
 
